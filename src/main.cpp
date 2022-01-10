@@ -1,4 +1,6 @@
-// Detect GC relay and then trigger additional relay
+// HystarHelper 
+// Detect GC relay trigger and then trigger additional relay to allow hysatr enough time to register 
+
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
@@ -12,40 +14,48 @@
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 
-const int Push_button_pin = 13; //GPIO13 = D7  
+const int button_pin = 13; //GPIO13 = D7  
+const int sda = 4; //GPIO14 = D5
+const int scl = 5; //GPIO12 = D6
+const int relay = 14; //GPIO = D1
+
+
 int Button_Counter = 0;
 int Current_State = 0;
 int Last_State = 0;
-const int relay = 14; //GPIO14 = D5, GPIO4 or GPIO5 may be preferred D1/D2
 
 void updateButtonPress(int newVal){
   int oldVal = newVal -1;
   display.setTextColor(BLACK);
-  display.setCursor(90, 10);
+  display.setCursor(70, 10);
+  display.setTextSize(3);
   display.print(oldVal);
   display.display();
   delay(100);
   display.setTextColor(WHITE);
-  display.setCursor(90, 10);
+  display.setCursor(70, 10);
   display.print(newVal);
   display.display();
   }
 
 void updateStatus(const char* NewStatus, const char* OldStatus){
   display.setTextColor(BLACK);
-  display.setCursor(90, 40);
+  display.setTextSize(3);
+  display.setCursor(70, 40);
   display.print(OldStatus);
   display.display();
   delay(100);
   display.setTextColor(WHITE);
-  display.setCursor(90, 40);
+  display.setCursor(70, 40);
   display.print(NewStatus);
   display.display();
 }  
 
 void setup() {
   Serial.begin(115200);
+  digitalWrite(relay, HIGH);
   pinMode(relay, OUTPUT);
+  Wire.begin(sda, scl);
 
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3D for 128x64
     Serial.println(F("SSD1306 allocation failed"));
@@ -63,11 +73,11 @@ void setup() {
   display.print("STATUS:");
   display.display(); 
 
-pinMode(Push_button_pin, INPUT);  
+pinMode(button_pin, INPUT);  
 }
 
 void loop() {
-  Current_State = digitalRead(Push_button_pin);
+  Current_State = digitalRead(button_pin);
 
   // compare the buttonState to its previous state
   if (Current_State != Last_State) {
