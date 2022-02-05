@@ -1,5 +1,5 @@
 // HystarHelper 
-// Detect GC relay trigger and then trigger additional relay to allow hysatr enough time to register 
+// Detect GC relay trigger and then trigger additional relay to allow hystar enough time to register 
 
 #include <SPI.h>
 #include <Wire.h>
@@ -19,6 +19,11 @@ const int sda = 4; //GPIO14 = D5
 const int scl = 5; //GPIO12 = D6
 const int relay = 14; //GPIO = D1
 
+//Setup relay trigger signals
+#define SIGNAL_RELAY_OFF LOW // 
+#define SIGNAL_RELAY_ON HIGH // 
+
+const int relay_time = 5000;
 
 int Button_Counter = 0;
 int Current_State = 0;
@@ -53,7 +58,7 @@ void updateStatus(const char* NewStatus, const char* OldStatus){
 
 void setup() {
   Serial.begin(115200);
-  digitalWrite(relay, HIGH);
+  digitalWrite(relay, SIGNAL_RELAY_OFF);
   pinMode(relay, OUTPUT);
   Wire.begin(sda, scl);
 
@@ -90,10 +95,10 @@ void loop() {
       Serial.println(Button_Counter);
       updateButtonPress(Button_Counter);
       updateStatus("ON","OFF");
-      digitalWrite(relay, LOW);
+      digitalWrite(relay, SIGNAL_RELAY_ON);
       Serial.println("Triggering Relay");
-      delay(5000);
-      digitalWrite(relay, HIGH);
+      delay(relay_time);
+      digitalWrite(relay, SIGNAL_RELAY_OFF);
       Serial.println("Relay Off");
     } else {
       // if the current state is LOW then the button went from on to off:
